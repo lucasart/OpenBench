@@ -93,30 +93,6 @@ def cleanupEnginesDirectory():
             print ("[NOTE] Deleted old engine", file)
 
 
-def getCutechess(server):
-
-    # Ask the server where the core files are saved
-    source = requests.get(
-        pathjoin(server, 'clientGetFiles'),
-        timeout=HTTP_TIMEOUT).content.decode('utf-8')
-
-    # Windows workers need the cutechess.exe and the Qt5Core dll.
-    # Linux workers need cutechess and the libcutechess SO.
-    # Make sure Linux binaries are set to be executable.
-
-    if IS_WINDOWS and not os.path.isfile('cutechess.exe'):
-        getFile(pathjoin(source, 'cutechess-windows.exe'), 'cutechess.exe')
-
-    if IS_WINDOWS and not os.path.isfile('Qt5Core.dll'):
-        getFile(pathjoin(source, 'cutechess-qt5core.dll'), 'Qt5Core.dll')
-
-    if IS_LINUX and not os.path.isfile('cutechess'):
-        getFile(pathjoin(source, 'cutechess-linux'), 'cutechess')
-        os.system('chmod 777 cutechess')
-
-    if IS_LINUX and not os.path.isfile('libcutechess.so.1'):
-        getFile(pathjoin(source, 'libcutechess.so.1'), 'libcutechess.so.1')
-
 def getCompilationSettings(server):
 
     # Get a dictionary of engine -> compilers
@@ -650,8 +626,9 @@ def main():
     p.add_argument('-T', '--threads', help='Number of Threads', required=True)
     arguments = p.parse_args()
 
-    # Make sure we have cutechess installed
-    getCutechess(arguments.server)
+    # Make sure we have c-chess-cli and we are not on windows
+    if IS_WINDOWS or not os.path.isfile('./c-chess-cli'):
+        sys.exit()
 
     # Determine how we will compile engines
     print("\nChecking for installed Compilers",)
